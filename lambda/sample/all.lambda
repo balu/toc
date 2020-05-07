@@ -1,0 +1,78 @@
+id     := \x.x;
+# bool
+true   := \x.\y.x;
+false  := \x.\y.y;
+ifelse := \b.\t.\e.b t e;
+not    := \b.ifelse b false true;
+# nat
+0      := \f.\x.x;
+succ   := \n.\f.\x.f (n f x);
+1      := succ 0;
+plus   := \n.\m.\f.\x.n f (m f x);
+2      := plus 1 1;
+3      := plus 2 1;
+mul    := \n.\m.\f.\x.n (m f) x;
+4      := mul 2 2;
+0?     := \n.n (\x. false) true;
+# pairs
+pair   := \x.\y.\f.f x y;
+first  := \p.p true;
+second := \p.p false;
+roll   := \p.pair (second p) (succ (second p));
+pred   := \n.first (n roll (pair 0 0));
+# infinite loop
+omega  := (\x.x x) (\x.x x);
+# recursion
+Y      := \f.(\x.f (x x)) (\x.f (x x)); # Y combinator
+fact   := Y (\f.\n.ifelse (0? n) 1 (mul n (f (pred n))));
+# cons lists
+nil    := \f.true;
+cons   := pair;
+rest   := second;
+nil?   := \xs.xs (\x.\y.false);
+len    := Y (\f.\xs.ifelse (nil? xs) 0 (succ (f (rest xs))));
+nth    := Y (\f.\xs.\n.ifelse (0? n) (first xs) (f (rest xs) (pred n)));
+# encoding lambda calculus in lambda calculus
+var    := \x.\a.\b.\c.a x;
+app    := \t.\u.\a.\b.\c.b t u;
+lam    := \t.\a.\b.\c.c t;
+# An evaluator for lambda calculus in lambda calculus.
+eval   := Y (\e.\m.m id (\t.\u.(e t) (e u)) (\t.\v.e (t v)));
+inf    := app (lam (\x.app (var x) (var x))) (lam (\x.app (var x) (var x)));
+# Print the infinite loop program
+# inf;
+# evaluating it enters the infinite loop
+# eval inf;
+
+# An interpreter using the evaluator
+interp := \p.\x.eval (app p x);
+
+# Representation for come common terms.
+# We use f' to denote encoding of f.
+id'    := lam (\c.var c);
+true'  := lam (\x.lam (\y.var x));
+false' := lam (\x.lam (\y.var y));
+
+# Does t halt on u?
+halts? := \t.\u.omega;
+absurd := \t.ifelse (halts? t t) omega true;
+# (absurd absurd') cannot be omega or true, implying that halts? cannot exist.
+
+# translation of encodings
+vart   := \v.lam (\a.lam (\b.lam (\c. app (var a) (var v))));
+appt   := \tr.\t.\u.lam (\a.lam (\b.lam (\c.app (app (var b) (tr t)) (tr u))));
+lamt   := \tr.\t.lam (\a.lam (\b.lam (\c. app (var c) (lam (\x.tr (t x))))));
+tran   := Y (\tr.\t.t vart (appt tr) (lamt tr));
+# eval (eval (tran t')) = t.
+# Second Recursion Theorem: For every F, there is an X such that
+# X = F X'
+# Pf. Let H      := \x.F (app x (tran x));
+# Then, X = H H' QED
+# Rice's Theorem: There are no non-trivial semantic property
+# checkers.
+# Pf. Define F = \x.ifelse (P x) B A
+# Let X be such that X = F X'
+# If P X' is true, then F X' is B
+# So p is true on X and false on B. But X = F X' = B.
+# If P X' is false, then F X' is A
+# So p is false on X and true on A. But X = F X' = A.
