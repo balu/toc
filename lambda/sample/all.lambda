@@ -40,7 +40,7 @@ lam    := \t.\a.\b.\c.c t;
 eval   := Y (\e.\m.m id (\t.\u.(e t) (e u)) (\t.\v.e (t v)));
 inf    := app (lam (\x.app (var x) (var x))) (lam (\x.app (var x) (var x)));
 # Print the infinite loop program
-# inf;
+inf;
 # evaluating it enters the infinite loop
 # eval inf;
 
