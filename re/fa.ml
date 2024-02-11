@@ -24,7 +24,7 @@ let print_usage () =
   print_endline "symdiff NFA1 NFA2";
   print_endline "intersection NFA1 NFA2";
   print_endline "complement NFA";
-  print_endline "min NFA STRING"
+  print_endline "min NFA"
 
 let () =
   let command = Sys.argv.(1) in
